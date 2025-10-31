@@ -61,7 +61,7 @@ service cloud.firestore {
       allow list: if false; // Prevent user enumeration
 
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isOwner(userId) && resource.data.id == userId; // Enforce immutability of user ID
+      allow update: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId; // Enforce immutability of user ID
       allow delete: if isSignedIn() && isOwner(userId) && resource != null;
 
         /**
@@ -118,15 +118,15 @@ service cloud.firestore {
             }
         }
     }
-    
+
     /**
      * @description Manages curiosity points for leaderboards.
      * Any authenticated user can list the points collection for the leaderboard.
      * A user can only get, create, or update their own points document.
      */
-    match /curiosity_points/{pointId} {
-        allow get: if isSignedIn() && request.auth.uid == pointId;
-        allow write: if isSignedIn() && request.auth.uid == pointId;
+    match /curiosity_points/{userId} {
+        allow get: if isSignedIn() && request.auth.uid == userId;
+        allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /curiosity_points {
