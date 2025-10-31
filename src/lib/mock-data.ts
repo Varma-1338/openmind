@@ -1,15 +1,15 @@
 export type LeaderboardEntry = {
   rank: number;
   name: string;
-  points: number;
+  streak: number;
 };
 
 export const leaderboardData: Omit<LeaderboardEntry, "rank">[] = [
-  { name: 'CuriousGeorge', points: 1450 },
-  { name: 'LearnMachine', points: 1320 },
-  { name: 'You', points: 0 },
-  { name: 'InfoSeeker', points: 1180 },
-  { name: 'QuestMaster', points: 1050 },
-  { name: 'DeepDive', points: 980 },
-  { name: 'Synapse', points: 850 },
+  { name: 'CuriousGeorge', streak: 145 },
+  { name: 'LearnMachine', streak: 132 },
+  { name: 'You', streak: 0 },
+  { name: 'InfoSeeker', streak: 118 },
+  { name: 'QuestMaster', streak: 105 },
+  { name: 'DeepDive', streak: 98 },
+  { name: 'Synapse', streak: 85 },
 ];

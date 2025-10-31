@@ -45,12 +45,12 @@ export default function Home() {
   const auth = useAuth();
   const firestore = useFirestore();
 
-  const userPointsRef = useMemoFirebase(() => {
+  const userStreakRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, "curiosity_points", user.uid);
   }, [user, firestore]);
-  const { data: userPointsDoc } = useDoc<{points: number}>(userPointsRef);
-  const points = userPointsDoc?.points ?? 0;
+  const { data: userStreakDoc } = useDoc<{streak: number}>(userStreakRef);
+  const streak = userStreakDoc?.streak ?? 0;
 
   const startNewJourney = () => {
     setInterests([]);
@@ -84,14 +84,10 @@ export default function Home() {
       // Generate the first topic of a new journey
       const firstTopic = await generateDailyTopic({ interests: submittedInterests });
       
-      // Award points for starting
-      const initialPoints = 10;
-      const currentPoints = userPointsDoc?.points || 0;
-      
-      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
-      await setDocumentNonBlocking(pointsDocRef, {
+      const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
+      setDocumentNonBlocking(streakDocRef, {
         userId: user.uid,
-        points: currentPoints + initialPoints,
+        streak: 1, // Start with a streak of 1
         timestamp: new Date()
       }, { merge: true });
 
@@ -124,13 +120,12 @@ export default function Home() {
         journeyTitle: journeyState.journeyTitle,
       });
 
-      const dailyPoints = 10;
-      const currentPoints = userPointsDoc?.points || 0;
+      const currentStreak = userStreakDoc?.streak || 0;
 
-      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
-      await setDocumentNonBlocking(pointsDocRef, {
+      const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
+      setDocumentNonBlocking(streakDocRef, {
         userId: user.uid,
-        points: currentPoints + dailyPoints,
+        streak: currentStreak + 1,
         timestamp: new Date()
       }, { merge: true });
       
@@ -155,17 +150,7 @@ export default function Home() {
   ) => {
     if (!firestore || !user) return;
     const score = (correctAnswers / totalQuestions) * 100;
-    const earnedPoints = correctAnswers * 5; // 5 points per correct answer
     setJourneyState(prev => ({...prev!, quizScore: score}));
-
-    const currentPoints = userPointsDoc?.points || 0;
-    const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
-    setDocumentNonBlocking(pointsDocRef, {
-      userId: user.uid,
-      points: currentPoints + earnedPoints,
-      quizScore: score,
-      timestamp: new Date()
-    }, { merge: true });
   };
   
   const handleSignOut = async () => {
@@ -244,14 +229,14 @@ export default function Home() {
   
   return (
     <div className="flex flex-col min-h-screen">
-      <Header points={points} onSignOut={handleSignOut} />
+      <Header streak={streak} onSignOut={handleSignOut} />
       <main className="flex-1 p-4 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
           <div className="lg:col-span-2 space-y-8">
             {renderJourneyContent()}
           </div>
           <div className="lg:col-span-1 space-y-8 mt-8 lg:mt-0">
-            <GamificationSidebar userPoints={points} />
+            <GamificationSidebar userStreak={streak} />
           </div>
         </div>
       </main>
