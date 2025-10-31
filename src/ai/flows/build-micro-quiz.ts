@@ -76,6 +76,7 @@ const buildMicroQuizFlow = ai.defineFlow(
     name: 'buildMicroQuizFlow',
     inputSchema: BuildMicroQuizInputSchema,
     outputSchema: BuildMicroQuizOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);

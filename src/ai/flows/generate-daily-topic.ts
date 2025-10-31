@@ -65,6 +65,7 @@ const generateDailyTopicFlow = ai.defineFlow(
     name: 'generateDailyTopicFlow',
     inputSchema: GenerateDailyTopicInputSchema,
     outputSchema: GenerateDailyTopicOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);

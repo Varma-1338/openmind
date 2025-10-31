@@ -61,6 +61,7 @@ const curateReadingMaterialFlow = ai.defineFlow(
     name: 'curateReadingMaterialFlow',
     inputSchema: CurateReadingMaterialInputSchema,
     outputSchema: CurateReadingMaterialOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);
