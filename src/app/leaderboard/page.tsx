@@ -104,7 +104,7 @@ export default function LeaderboardPage() {
                         </TableHeader>
                         <TableBody>
                             {rankedData.map((entry) => (
-                                <TableRow key={entry.rank} className={cn(entry.isUser && 'bg-primary/10 font-bold text-primary-foreground')}>
+                                <TableRow key={entry.rank} className={cn(entry.isUser && 'bg-primary/10 font-bold text-primary')}>
                                     <TableCell className="text-center">
                                       <div className="flex justify-center items-center h-full">
                                         {getRankIndicator(entry.rank)}
