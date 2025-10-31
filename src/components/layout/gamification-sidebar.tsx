@@ -52,23 +52,28 @@ export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSi
 
   // Step 2: Use the user IDs from those journeys to query the `curiosity_points` collection
   const pointsQuery = useMemoFirebase(() => {
-    if (!firestore || !journeys || journeys.length === 0) return null;
+    if (!firestore || !journeys) return null;
+    
+    // Handle the case where there are no journeys for this title yet.
+    if (journeys.length === 0) return "EMPTY"; 
+
     // Extract user IDs from the parent path of the journey documents
     const userIds = journeys.map(j => j._path.segments[1]).filter(Boolean) as string[];
-    if (userIds.length === 0) return null;
     
-    // This query is valid and secure. It queries the 'curiosity_points' collection
-    // where reads are allowed on a per-user basis, but listing is also possible.
-    // We filter by user IDs who are part of the current journey.
+    // Firestore 'in' queries are limited to 30 items. If you expect more, you'll need pagination.
+    if (userIds.length === 0) return "EMPTY";
+    
     return query(
         collection(firestore, 'curiosity_points'), 
-        where('userId', 'in', userIds),
+        where('userId', 'in', userIds.slice(0, 30)),
         orderBy('streak', 'desc'),
         limit(10)
     );
   }, [firestore, journeys]);
 
-  const { data: streaks, isLoading: streaksLoading } = useCollection<{userId: string, userName: string, streak: number}>(pointsQuery);
+  const { data: streaks, isLoading: streaksLoading } = useCollection<{userId: string, userName: string, streak: number}>(
+    pointsQuery === "EMPTY" ? null : pointsQuery
+  );
 
   // Step 3: Process the data to build the leaderboard
   useEffect(() => {
@@ -86,10 +91,10 @@ export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSi
             .map((user, index) => ({...user, rank: index + 1}));
 
         setLeaderboard(rankedList);
-    } else {
+    } else if (pointsQuery === "EMPTY") {
         setLeaderboard([]);
     }
-  }, [streaks, journeysLoading, streaksLoading]);
+  }, [streaks, journeysLoading, streaksLoading, pointsQuery]);
   
   return (
     <Card>
