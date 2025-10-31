@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, useCollection } from '@/firebase';
+import { doc, collection } from 'firebase/firestore';
 import { Header } from '@/components/layout/header';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '@/firebase';
@@ -25,6 +25,15 @@ export default function ProfilePage() {
   }, [user, firestore]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
+  
+  const userPointsDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'curiosity_points');
+  }, [firestore, user]);
+
+  const { data: userPointsData } = useCollection<{ points: number }>(userPointsDocRef);
+  const userPoints = userPointsData?.find(d => d.id === user?.uid)?.points ?? 0;
+
 
   useEffect(() => {
     // Only redirect if loading is complete and there is no user
@@ -68,7 +77,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header streak={0} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => {}} />
+      <Header points={userPoints} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => {}} />
       <main className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-2xl space-y-8">
             <Card>

@@ -19,7 +19,7 @@ import {
   buildMicroQuiz,
   type BuildMicroQuizOutput,
 } from "@/ai/flows/build-micro-quiz";
-import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import AuthPage from "@/app/auth/page";
 import { signOut } from "firebase/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -57,13 +57,6 @@ type JourneyState = {
   currentTopic: Topic | null;
 };
 
-const isSameDay = (date1: Date, date2: Date) => {
-    if (!date1 || !date2) return false;
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate();
-}
-
 export default function Home() {
   const [interests, setInterests] = useState<string[]>([]);
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null);
@@ -87,13 +80,13 @@ export default function Home() {
     return collection(firestore, "users", user.uid, "learning_journeys");
   }, [user, firestore]);
 
-  const userStreakRef = useMemoFirebase(() => {
+  const userPointsRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, "curiosity_points", user.uid);
   }, [user, firestore]);
 
-  const { data: userStreakDoc } = useDoc<{streak: number, timestamp: Timestamp}>(userStreakRef);
-  const streak = userStreakDoc?.streak ?? 0;
+  const { data: userPointsDoc } = useDoc<{points: number, timestamp: Timestamp}>(userPointsRef);
+  const points = userPointsDoc?.points ?? 0;
 
   // Effect to check for pre-generated journey start
   useEffect(() => {
@@ -202,12 +195,13 @@ export default function Home() {
       // Update journey with topic ID
       batch.update(newJourneyRef, { topicIds: [newTopicRef.id] });
 
-      // Update streak
-      const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
-      batch.set(streakDocRef, {
+      // Update points
+      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
+      const currentPoints = userPointsDoc?.points || 0;
+      batch.set(pointsDocRef, {
         userId: user.uid,
         userName: userProfile.name, // Denormalize user name
-        streak: 1,
+        points: currentPoints + 10,
         timestamp: serverTimestamp(),
         journeyTitle: firstTopicAI.journeyTitle, // Denormalize journey title
       }, { merge: true });
@@ -271,27 +265,21 @@ export default function Home() {
           totalDays: nextTopicAI.totalDays // Keep total days consistent
       });
 
-      // Update streak
-      const currentStreak = userStreakDoc?.streak || 0;
-      const lastUpdate = userStreakDoc?.timestamp?.toDate();
-      const now = new Date();
-
-      let newStreak = currentStreak;
-      if (!lastUpdate || !isSameDay(lastUpdate, now)) {
-        newStreak = currentStreak + 1;
-        const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
-        batch.set(streakDocRef, {
-          streak: newStreak,
-          timestamp: serverTimestamp(),
-          userName: userProfile.name, // Keep denormalized name up-to-date
-          journeyTitle: journey.title, // Keep denormalized journey title up-to-date
-        }, { merge: true });
-        
-        toast({
-            title: "Daily Progression Bonus!",
-            description: `Your curiosity streak is now ${newStreak}!`,
-        });
-      }
+      // Update points
+      const currentPoints = userPointsDoc?.points || 0;
+      const newPoints = currentPoints + 10;
+      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
+      batch.set(pointsDocRef, {
+        points: newPoints,
+        timestamp: serverTimestamp(),
+        userName: userProfile.name, // Keep denormalized name up-to-date
+        journeyTitle: journey.title, // Keep denormalized journey title up-to-date
+      }, { merge: true });
+      
+      toast({
+          title: "Daily Progression Bonus!",
+          description: `You earned 10 points! You now have ${newPoints} points.`,
+      });
       
       await batch.commit();
 
@@ -443,7 +431,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <ConfettiCelebration active={showConfetti} onComplete={() => setShowConfetti(false)} />
       <Header 
-        streak={streak} 
+        points={points} 
         onSignOut={handleSignOut} 
         onHomeClick={startNewJourney}
         onHistoryClick={() => setIsHistoryOpen(true)}
