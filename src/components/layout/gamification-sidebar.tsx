@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Trophy, Flame } from "lucide-react";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collectionGroup, query, where, orderBy, limit } from "firebase/firestore";
+import { collection, collectionGroup, query, where, orderBy, limit } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Skeleton } from "../ui/skeleton";
