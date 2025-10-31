@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Trophy, Flame } from "lucide-react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, where } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Skeleton } from "../ui/skeleton";
 import { useEffect, useState } from "react";
@@ -48,19 +48,16 @@ export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSi
     const buildLeaderboard = async () => {
         setIsLoading(true);
         try {
-            const pointsQuery = query(
-                collection(firestore, 'curiosity_points'),
-                where('journeyTitle', '==', journeyTitle)
-            );
+            // 1. Fetch all documents from the collection.
+            const pointsQuery = query(collection(firestore, 'curiosity_points'));
 
             const querySnapshot = await getDocs(pointsQuery);
-            const streaks = querySnapshot.docs.map(doc => ({ userId: doc.id, ...doc.data() } as { userId: string, userName: string, streak: number }));
-            
-            // Sort on the client
-            streaks.sort((a, b) => b.streak - a.streak);
+            const allStreaks = querySnapshot.docs.map(doc => ({ userId: doc.id, ...doc.data() } as { userId: string, userName: string, streak: number, journeyTitle: string }));
 
-            // Get top 10 after sorting
-            const topStreaks = streaks.slice(0, 10);
+            // 2. Filter, sort, and slice on the client side.
+            const filteredStreaks = allStreaks.filter(entry => entry.journeyTitle === journeyTitle);
+            filteredStreaks.sort((a, b) => b.streak - a.streak);
+            const topStreaks = filteredStreaks.slice(0, 10);
 
             const leaderboardData: LeaderboardUser[] = topStreaks.map((streakEntry, index) => ({
                 rank: index + 1,
@@ -75,7 +72,7 @@ export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSi
             if (error instanceof Error && 'code' in error && (error as any).code === 'permission-denied') {
                 const contextualError = new FirestorePermissionError({
                   operation: 'list',
-                  path: `curiosity_points where journeyTitle == ${journeyTitle}`, // Describe the query
+                  path: `curiosity_points`,
                 });
                 errorEmitter.emit('permission-error', contextualError);
             } else {
@@ -150,5 +147,3 @@ export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSi
     </Card>
   );
 }
-
-    
