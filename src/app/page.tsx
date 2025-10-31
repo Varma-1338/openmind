@@ -26,7 +26,6 @@ import { ArrowRight } from "lucide-react";
 import { collection, doc, Timestamp, query, orderBy, limit, getDocs, serverTimestamp, writeBatch } from "firebase/firestore";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { JourneyHistorySidebar } from "@/components/layout/journey-history-sidebar";
-import { Leaderboard } from "@/components/layout/leaderboard";
 import { useToast } from "@/hooks/use-toast";
 
 type Journey = {
@@ -407,14 +406,13 @@ export default function Home() {
       <Header streak={streak} onSignOut={handleSignOut} onHomeClick={startNewJourney} />
       <main className="flex-1 p-4 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-3 space-y-8">
                 {renderJourneyContent()}
             </div>
             <aside className="space-y-8 lg:block hidden">
                 {user && journeyState?.journey && (
                     <>
                         <JourneyHistorySidebar user={user} onSelectJourney={handleSelectJourney} />
-                        <Leaderboard user={user} />
                     </>
                 )}
             </aside>
