@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -26,68 +27,70 @@ type GamificationSidebarProps = {
 };
 
 type LeaderboardUser = {
-    id: string;
-    name: string;
-    streak: number;
-}
+  rank: number;
+  id: string;
+  name: string;
+  streak: number;
+};
 
 export function GamificationSidebar({ userStreak, journeyTitle }: GamificationSidebarProps) {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [leaderboard, setLeaderboard] = useState<{rank: number, name: string, streak: number, id: string}[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Step 1: Find all journey documents that match the current journey title
   const journeysQuery = useMemoFirebase(() => {
     if (!firestore || !journeyTitle) return null;
-    // Query the 'learning_journeys' collection group to find all journeys with the same title.
-    // This requires a composite index in Firestore: (title ==, startDate DESC)
     return query(
         collectionGroup(firestore, 'learning_journeys'), 
-        where('title', '==', journeyTitle),
-        orderBy('startDate', 'desc'),
-        limit(10) // Limit to top 10 for performance
+        where('title', '==', journeyTitle)
     );
   }, [firestore, journeyTitle]);
 
-  const { data: journeys, isLoading: journeysLoading } = useCollection<{title: string, topicIds: string[]}>(journeysQuery);
-  const userDocsRef = useMemoFirebase(() => {
+  const { data: journeys, isLoading: journeysLoading } = useCollection<{id: string}>(journeysQuery);
+
+  // Step 2: Use the user IDs from those journeys to query the `curiosity_points` collection
+  const pointsQuery = useMemoFirebase(() => {
     if (!firestore || !journeys || journeys.length === 0) return null;
-    const userIds = journeys.map(j => j.id.split('/learning_journeys/')[0].split('/').pop());
+    // Extract user IDs from the parent path of the journey documents
+    const userIds = journeys.map(j => j.id.split('/learning_journeys/')[0].split('/').pop()).filter(Boolean) as string[];
     if (userIds.length === 0) return null;
-    return query(collection(firestore, 'users'), where('id', 'in', userIds));
+
+    // This query is valid and secure. It queries the 'curiosity_points' collection
+    // where reads are allowed on a per-user basis, but listing is also possible.
+    // We filter by user IDs who are part of the current journey.
+    return query(
+        collection(firestore, 'curiosity_points'), 
+        where('userId', 'in', userIds),
+        orderBy('streak', 'desc'),
+        limit(10)
+    );
   }, [firestore, journeys]);
 
-  const { data: users, isLoading: usersLoading } = useCollection<{id: string, name: string}>(userDocsRef);
+  const { data: streaks, isLoading: streaksLoading } = useCollection<{userId: string, userName: string, streak: number}>(pointsQuery);
 
-  const pointsRef = useMemoFirebase(() => {
-    if (!firestore || !users || users.length === 0) return null;
-    const userIds = users.map(u => u.id);
-    if (userIds.length === 0) return null;
-    return query(collection(firestore, 'curiosity_points'), where('userId', 'in', userIds), orderBy('streak', 'desc'));
-  }, [firestore, users]);
-
-  const { data: streaks, isLoading: streaksLoading } = useCollection<{userId: string, streak: number}>(pointsRef);
-
+  // Step 3: Process the data to build the leaderboard
   useEffect(() => {
-    setIsLoading(journeysLoading || usersLoading || streaksLoading);
+    setIsLoading(journeysLoading || streaksLoading);
 
-    if (users && streaks) {
-        const userMap = new Map(users.map(u => [u.id, u.name]));
+    if (streaks) {
         const rankedList = streaks
             .map((streakEntry, index) => ({
                 rank: index + 1,
                 id: streakEntry.userId,
-                name: userMap.get(streakEntry.userId) || "Anonymous",
+                name: streakEntry.userName || "Anonymous", // Use denormalized name
                 streak: streakEntry.streak,
             }))
-            .sort((a,b) => b.streak - a.streak) // re-sort after mapping
-            .map((user, index) => ({...user, rank: index + 1})); // re-rank
+            .sort((a,b) => b.streak - a.streak)
+            .map((user, index) => ({...user, rank: index + 1}));
 
         setLeaderboard(rankedList);
+    } else {
+        setLeaderboard([]);
     }
-  }, [users, streaks, journeysLoading, usersLoading, streaksLoading]);
+  }, [streaks, journeysLoading, streaksLoading]);
   
-
   return (
     <Card>
       <CardHeader>

@@ -50,6 +50,31 @@
         "streak",
         "level"
       ]
+    },
+    "CuriosityPoints": {
+      "title": "CuriosityPoints",
+      "type": "object",
+      "description": "Stores user streak data for leaderboard purposes.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The display name of the user (denormalized)."
+        },
+        "streak": {
+          "type": "number",
+          "description": "The user's current daily streak."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the last streak update."
+        }
+      },
+      "required": ["userId", "userName", "streak", "timestamp"]
     }
   },
   "auth": {

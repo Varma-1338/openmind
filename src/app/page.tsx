@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -18,7 +19,7 @@ import {
   buildMicroQuiz,
   type BuildMicroQuizOutput,
 } from "@/ai/flows/build-micro-quiz";
-import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
+import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import AuthPage from "@/app/auth/page";
 import { signOut } from "firebase/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -167,6 +168,7 @@ export default function Home() {
       const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
       batch.set(streakDocRef, {
         userId: user.uid,
+        userName: user.displayName, // Denormalize user name
         streak: 1,
         timestamp: serverTimestamp()
       }, { merge: true });
@@ -237,7 +239,8 @@ export default function Home() {
         const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
         batch.set(streakDocRef, {
           streak: newStreak,
-          timestamp: now
+          timestamp: now,
+          userName: user.displayName, // Keep denormalized name up-to-date
         }, { merge: true });
       }
       
@@ -269,13 +272,15 @@ export default function Home() {
     const topicRef = doc(firestore, "users", user.uid, "learning_journeys", journeyState.journey.id, "topics", journeyState.currentTopic.id);
     setDocumentNonBlocking(topicRef, { quizScore: score }, { merge: true });
 
-    setJourneyState(prev => ({
-      ...prev!,
+    setJourneyState(prev => {
+      if (!prev || !prev.currentTopic) return prev;
+      return {
+      ...prev,
       currentTopic: {
-        ...prev!.currentTopic!,
+        ...prev.currentTopic,
         quizScore: score,
       }
-    }));
+    }});
   };
   
   const handleSignOut = async () => {
