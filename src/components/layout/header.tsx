@@ -1,6 +1,7 @@
 import { Logo } from "@/components/common/icons";
 import { Button } from "../ui/button";
-import { Flame, LogOut, Home } from "lucide-react";
+import { Flame, LogOut, Home, User } from "lucide-react";
+import Link from "next/link";
 
 type HeaderProps = {
   streak: number;
@@ -22,6 +23,11 @@ export function Header({ streak, onSignOut, onHomeClick }: HeaderProps) {
           <Button variant="ghost" size="icon" onClick={onHomeClick} aria-label="Home">
             <Home className="h-5 w-5" />
           </Button>
+          <Link href="/profile" passHref>
+            <Button variant="ghost" size="icon" aria-label="Profile">
+                <User className="h-5 w-5" />
+            </Button>
+          </Link>
           <div className="flex items-center gap-2 bg-card border rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm">
             <Flame className="h-5 w-5 text-orange-500 fill-orange-400" />
             <span>{streak}</span>
