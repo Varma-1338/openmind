@@ -45,7 +45,7 @@ export function AuthForm({ isLogin, onSubmit, setIsLogin }: AuthFormProps) {
       email: "",
       password: "",
       // @ts-ignore
-      ...(isLogin ? {} : { name: "", age: undefined , contact: "" }),
+      ...(isLogin ? {} : { name: "", age: null , contact: "" }),
     },
   });
 
@@ -78,7 +78,7 @@ export function AuthForm({ isLogin, onSubmit, setIsLogin }: AuthFormProps) {
                     <FormItem>
                         <FormLabel>Age</FormLabel>
                         <FormControl>
-                        <Input type="number" placeholder="25" {...field} />
+                        <Input type="number" placeholder="25" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

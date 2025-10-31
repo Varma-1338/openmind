@@ -27,7 +27,7 @@ export function ProfileForm({ userProfile, onSubmit }: ProfileFormProps) {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: userProfile?.name || '',
-      age: userProfile?.age || undefined,
+      age: userProfile?.age || null,
       contact: userProfile?.contact || '',
       email: userProfile?.email || '',
     },
@@ -56,7 +56,7 @@ export function ProfileForm({ userProfile, onSubmit }: ProfileFormProps) {
             <FormItem>
               <FormLabel>Age</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="25" {...field} />
+                <Input type="number" placeholder="25" {...field} value={field.value ?? ''}/>
               </FormControl>
               <FormMessage />
             </FormItem>
