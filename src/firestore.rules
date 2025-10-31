@@ -34,15 +34,5 @@ service cloud.firestore {
             }
         }
     }
-
-    // A user can get or write to their own document in the curiosity_points collection.
-    match /curiosity_points/{userId} {
-      allow get, write: if request.auth.uid == userId;
-    }
-
-    // Any signed-in user can list the entire curiosity_points collection for the leaderboard.
-    match /curiosity_points {
-        allow list: if isSignedIn();
-    }
   }
 }

@@ -1,6 +1,6 @@
 import { Logo } from "@/components/common/icons";
 import { Button } from "../ui/button";
-import { Flame, LogOut, Home, User, BookMarked, History, Trophy } from "lucide-react";
+import { Flame, LogOut, Home, User, BookMarked, History } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -57,12 +57,6 @@ export function Header({ points, onSignOut, onHomeClick, onHistoryClick }: Heade
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link href="/leaderboard" passHref>
-            <Button variant="ghost" size="icon" aria-label="Leaderboard">
-                <Trophy className="h-5 w-5" />
-            </Button>
-          </Link>
-
           <Link href="/profile" passHref>
             <Button variant="ghost" size="icon" aria-label="Profile">
                 <User className="h-5 w-5" />
@@ -71,7 +65,7 @@ export function Header({ points, onSignOut, onHomeClick, onHistoryClick }: Heade
           <div className="flex items-center gap-2 bg-card border rounded-full px-3 py-1.5 text-sm font-semibold shadow-sm">
             <Flame className="h-5 w-5 text-orange-500 fill-orange-400" />
             <span>{points}</span>
-            <span className="hidden sm:inline ml-1">Points</span>
+            <span className="hidden sm:inline ml-1">Day Streak</span>
           </div>
           <Button variant="ghost" size="icon" onClick={onSignOut} aria-label="Sign out">
             <LogOut className="h-5 w-5" />

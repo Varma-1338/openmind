@@ -8,11 +8,11 @@ import { ArrowRight, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Header } from '@/components/layout/header';
-import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useAuth, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 
 
 export default function StreamPage() {
@@ -24,13 +24,12 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const stream = streams.find(s => s.id === streamId);
 
-    const userPointsDocRef = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return collection(firestore, 'curiosity_points');
-    }, [firestore, user]);
-    
-    const { data: userPointsData } = useCollection<{ points: number }>(userPointsDocRef);
-    const userPoints = userPointsData?.find(d => d.id === user?.uid)?.points ?? 0;
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, "users", user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<{streak: number}>(userProfileRef);
+    const streak = userProfile?.streak ?? 0;
 
     const handleSignOut = async () => {
         if (auth) {
@@ -46,7 +45,7 @@ export default function StreamPage() {
     if (!stream) {
         return (
             <div className="flex flex-col min-h-screen">
-                <Header points={userPoints} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => {}} />
+                <Header points={streak} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => {}} />
                 <main className="flex-1 p-4 md:p-8 flex items-center justify-center">
                     <p>Stream not found.</p>
                 </main>
@@ -56,7 +55,7 @@ export default function StreamPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header points={userPoints} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => router.push('/')} />
+            <Header points={streak} onSignOut={handleSignOut} onHomeClick={handleHomeClick} onHistoryClick={() => router.push('/')} />
             <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <div className="text-center space-y-2">

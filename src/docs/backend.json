@@ -33,9 +33,9 @@
           "description": "The date and time the user joined the platform.",
           "format": "date-time"
         },
-        "points": {
+        "streak": {
           "type": "number",
-          "description": "The user's curiosity points."
+          "description": "The user's daily activity streak."
         },
         "level": {
           "type": "string",
@@ -47,14 +47,14 @@
         "id",
         "name",
         "email",
-        "points",
+        "streak",
         "level"
       ]
     },
     "CuriosityPoints": {
       "title": "CuriosityPoints",
       "type": "object",
-      "description": "Stores user points data for leaderboard purposes.",
+      "description": "Stores user streak data for leaderboard purposes.",
       "properties": {
         "userId": {
           "type": "string",
@@ -68,17 +68,17 @@
             "type": "string",
             "description": "The title of the learning journey the user is on (denormalized)."
         },
-        "points": {
+        "streak": {
           "type": "number",
-          "description": "The user's current curiosity points."
+          "description": "The user's current daily streak."
         },
         "timestamp": {
           "type": "string",
           "format": "date-time",
-          "description": "The timestamp of the last points update."
+          "description": "The timestamp of the last streak update."
         }
       },
-      "required": ["userId", "userName", "points", "timestamp", "journeyTitle"]
+      "required": ["userId", "userName", "streak", "timestamp", "journeyTitle"]
     }
   },
   "auth": {

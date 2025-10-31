@@ -73,20 +73,8 @@ export default function Home() {
     if (!user || !firestore) return null;
     return doc(firestore, "users", user.uid);
   }, [user, firestore]);
-  const { data: userProfile } = useDoc<{name: string}>(userProfileRef);
-
-  const journeysRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, "users", user.uid, "learning_journeys");
-  }, [user, firestore]);
-
-  const userPointsRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, "curiosity_points", user.uid);
-  }, [user, firestore]);
-
-  const { data: userPointsDoc } = useDoc<{points: number, timestamp: Timestamp}>(userPointsRef);
-  const points = userPointsDoc?.points ?? 0;
+  const { data: userProfile } = useDoc<{streak: number}>(userProfileRef);
+  const streak = userProfile?.streak ?? 0;
 
   // Effect to check for pre-generated journey start
   useEffect(() => {
@@ -104,7 +92,7 @@ export default function Home() {
 
   // Effect to load the most recent journey
   useEffect(() => {
-    if (!journeysRef || !user) return;
+    if (!user || !firestore) return;
 
     // Check if a journey is being started from another page
     const pregenInterestsJSON = localStorage.getItem('pregeneratedJourneyInterests');
@@ -114,6 +102,7 @@ export default function Home() {
 
     const loadMostRecentJourney = async () => {
       setIsLoading(true);
+      const journeysRef = collection(firestore, "users", user.uid, "learning_journeys");
       const q = query(journeysRef, orderBy("startDate", "desc"), limit(1));
       const querySnapshot = await getDocs(q);
       
@@ -139,7 +128,7 @@ export default function Home() {
     };
 
     loadMostRecentJourney();
-  }, [journeysRef, user, firestore]);
+  }, [user, firestore]);
 
   const startNewJourney = () => {
     setInterests([]);
@@ -147,7 +136,7 @@ export default function Home() {
   };
   
   const handleInterestsSubmit = async (submittedInterests: string[]) => {
-    if (isLoading || !user || !firestore || !userProfile) return;
+    if (isLoading || !user || !firestore) return;
     setIsLoading(true);
     setInterests(submittedInterests);
     setJourneyState(null); // Clear previous journey state
@@ -194,17 +183,6 @@ export default function Home() {
 
       // Update journey with topic ID
       batch.update(newJourneyRef, { topicIds: [newTopicRef.id] });
-
-      // Update points
-      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
-      const currentPoints = userPointsDoc?.points || 0;
-      batch.set(pointsDocRef, {
-        userId: user.uid,
-        userName: userProfile.name, // Denormalize user name
-        points: currentPoints + 10,
-        timestamp: serverTimestamp(),
-        journeyTitle: firstTopicAI.journeyTitle, // Denormalize journey title
-      }, { merge: true });
       
       await batch.commit();
 
@@ -221,7 +199,7 @@ export default function Home() {
   };
 
   const advanceToNextDay = async () => {
-    if (!journeyState || !journeyState.journey || isLoading || !user || !firestore || !userProfile) return;
+    if (!journeyState || !journeyState.journey || isLoading || !user || !firestore) return;
 
     setIsLoading(true);
     try {
@@ -265,21 +243,15 @@ export default function Home() {
           totalDays: nextTopicAI.totalDays // Keep total days consistent
       });
 
-      // Update points
-      const currentPoints = userPointsDoc?.points || 0;
-      const newPoints = currentPoints + 10;
-      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
-      batch.set(pointsDocRef, {
-        points: newPoints,
-        timestamp: serverTimestamp(),
-        userName: userProfile.name, // Keep denormalized name up-to-date
-        journeyTitle: journey.title, // Keep denormalized journey title up-to-date
-      }, { merge: true });
-      
-      toast({
-          title: "Daily Progression Bonus!",
-          description: `You earned 10 points! You now have ${newPoints} points.`,
-      });
+      // Update streak
+      if (userProfileRef) {
+        const newStreak = (userProfile?.streak || 0) + 1;
+        batch.update(userProfileRef, { streak: newStreak });
+        toast({
+            title: "Daily Progression Bonus!",
+            description: `Your streak is now ${newStreak}!`,
+        });
+      }
       
       await batch.commit();
 
@@ -339,11 +311,7 @@ export default function Home() {
     return <LoadingSpinner />;
   }
 
-  if (!user || !userProfile) {
-    // Also wait for userProfile to be loaded before rendering anything that depends on it.
-    if (isUserLoading) {
-        return <LoadingSpinner />;
-    }
+  if (!user) {
     return <AuthPage />;
   }
 
@@ -435,7 +403,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <ConfettiCelebration active={showConfetti} onComplete={() => setShowConfetti(false)} />
       <Header 
-        points={points} 
+        points={streak} 
         onSignOut={handleSignOut} 
         onHomeClick={startNewJourney}
         onHistoryClick={() => setIsHistoryOpen(true)}
