@@ -49,7 +49,7 @@ const prompt = ai.definePrompt({
   Mark "isFirstDay" as false. If you feel this is the final topic to conclude the journey, mark "isLastDay" as true.
   The "totalDays" should remain consistent with the previously established journey length.
   {{else}}
-  This is the start of a new journey. First, determine a realistic and appropriate length for a learning journey based on the user's interests. A simple topic might be 7-10 days, while a complex one like "Data Structures" could be 30 or more.
+  This is the start of a new journey. First, determine a realistic and appropriate length for a learning journey based on the user's interests. A simple topic might be 7-10 days, while a complex one like "Data Structures" could be 30, 45, or more days. For pre-generated university subjects like "Data Structures & Algorithms" or "Operating Systems", you MUST use a longer, more realistic timeline (e.g., 30-45 days).
   
   Then, create a broad, engaging title for this learning journey. The title MUST NOT mention a specific duration (e.g., no "in X days").
   
@@ -61,7 +61,7 @@ const prompt = ai.definePrompt({
   3. "journeyTitle": The title for the overall learning journey.
   4. "isFirstDay": A boolean indicating if this is the first day (should be true).
   5. "isLastDay": A boolean indicating if this is the last day (should be false unless it's a 1-day journey).
-  6. "totalDays": The total number of days you have planned for this entire journey.
+  6. "totalDays": The total number of days you have planned for this entire journey. This MUST be a realistic number based on the complexity of the topic.
   {{/if}}
   `,
 });
