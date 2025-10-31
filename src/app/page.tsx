@@ -8,6 +8,7 @@ import { DailyJourneyDisplay } from "@/components/journey/daily-journey-display"
 import { Button } from "@/components/ui/button";
 import {
   generateDailyTopic,
+  type GenerateDailyTopicInput,
   type GenerateDailyTopicOutput,
 } from "@/ai/flows/generate-daily-topic";
 import {
@@ -159,7 +160,8 @@ export default function Home() {
     setJourneyState(null); // Clear previous journey state
 
     try {
-      const firstTopicAI = await generateDailyTopic({ interests: submittedInterests });
+      const aiInput: GenerateDailyTopicInput = { interests: submittedInterests };
+      const firstTopicAI = await generateDailyTopic(aiInput);
       
       const batch = writeBatch(firestore);
 
@@ -235,6 +237,7 @@ export default function Home() {
       const nextTopicAI = await generateDailyTopic({
         interests, // Assuming interests are still in scope or fetched with journey
         journeyTitle: journey.title,
+        totalDays: journey.totalDays,
       });
 
       const material = await curateReadingMaterial({ topic: nextTopicAI.topic, interests });
@@ -279,7 +282,7 @@ export default function Home() {
         const streakDocRef = doc(firestore, 'curiosity_points', user.uid);
         batch.set(streakDocRef, {
           streak: newStreak,
-          timestamp: now,
+          timestamp: serverTimestamp(),
           userName: userProfile.name, // Keep denormalized name up-to-date
           journeyTitle: journey.title, // Keep denormalized journey title up-to-date
         }, { merge: true });
@@ -386,7 +389,7 @@ export default function Home() {
         <div className="space-y-8">
           <Card>
             <CardHeader>
-                <CardTitle className="text-2xl font-bold font-headline">Course Module: {journey.title}</CardTitle>
+                <CardTitle className="text-2xl font-bold font-headline">{journey.title}</CardTitle>
                 <CardDescription>Day {day} of {journey.totalDays} in your learning journey.</CardDescription>
             </CardHeader>
           </Card>
