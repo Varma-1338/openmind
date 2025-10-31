@@ -18,12 +18,12 @@ import {
   buildMicroQuiz,
   type BuildMicroQuizOutput,
 } from "@/ai/flows/build-micro-quiz";
-import { useUser, useAuth, addDocumentNonBlocking, useFirestore } from "@/firebase";
+import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import AuthPage from "@/app/auth/page";
 import { signOut } from "firebase/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import { collection, doc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 
 type JourneyState = {
@@ -40,11 +40,17 @@ export default function Home() {
   const [interests, setInterests] = useState<string[]>([]);
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [points, setPoints] = useState(0);
-
+  
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
+
+  const userPointsRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, "curiosity_points", user.uid);
+  }, [user, firestore]);
+  const { data: userPointsDoc } = useDoc<{points: number}>(userPointsRef);
+  const points = userPointsDoc?.points ?? 0;
 
   const startNewJourney = () => {
     setInterests([]);
@@ -69,7 +75,7 @@ export default function Home() {
   };
   
   const handleInterestsSubmit = async (submittedInterests: string[]) => {
-    if (isLoading || !firestore) return;
+    if (isLoading || !user || !firestore) return;
     setIsLoading(true);
     setInterests(submittedInterests);
     setJourneyState(null); // Clear previous journey state
@@ -80,16 +86,14 @@ export default function Home() {
       
       // Award points for starting
       const initialPoints = 10;
-      setPoints(initialPoints);
+      const currentPoints = userPointsDoc?.points || 0;
       
-      if(user) {
-        const pointsCollection = collection(firestore, 'curiosity_points');
-        await addDocumentNonBlocking(pointsCollection, {
-          userId: user.uid,
-          points: initialPoints,
-          timestamp: new Date()
-        });
-      }
+      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
+      await setDocumentNonBlocking(pointsDocRef, {
+        userId: user.uid,
+        points: currentPoints + initialPoints,
+        timestamp: new Date()
+      }, { merge: true });
 
 
       setJourneyState({
@@ -111,7 +115,7 @@ export default function Home() {
   };
 
   const advanceToNextDay = async () => {
-    if (!journeyState || !journeyState.journeyTitle || isLoading || !firestore) return;
+    if (!journeyState || !journeyState.journeyTitle || isLoading || !user || !firestore) return;
 
     setIsLoading(true);
     try {
@@ -121,17 +125,14 @@ export default function Home() {
       });
 
       const dailyPoints = 10;
-      setPoints(prev => prev + dailyPoints);
+      const currentPoints = userPointsDoc?.points || 0;
 
-      if(user) {
-        const pointsCollection = collection(firestore, 'curiosity_points');
-        await addDocumentNonBlocking(pointsCollection, {
-          userId: user.uid,
-          points: dailyPoints,
-          timestamp: new Date()
-        });
-      }
-
+      const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
+      await setDocumentNonBlocking(pointsDocRef, {
+        userId: user.uid,
+        points: currentPoints + dailyPoints,
+        timestamp: new Date()
+      }, { merge: true });
       
       setJourneyState(prev => ({
         ...prev!,
@@ -152,21 +153,19 @@ export default function Home() {
     correctAnswers: number,
     totalQuestions: number
   ) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const score = (correctAnswers / totalQuestions) * 100;
     const earnedPoints = correctAnswers * 5; // 5 points per correct answer
-    setPoints(prev => prev + earnedPoints);
     setJourneyState(prev => ({...prev!, quizScore: score}));
 
-    if(user) {
-        const pointsCollection = collection(firestore, 'curiosity_points');
-        addDocumentNonBlocking(pointsCollection, {
-          userId: user.uid,
-          points: earnedPoints,
-          quizScore: score,
-          timestamp: new Date()
-        });
-    }
+    const currentPoints = userPointsDoc?.points || 0;
+    const pointsDocRef = doc(firestore, 'curiosity_points', user.uid);
+    setDocumentNonBlocking(pointsDocRef, {
+      userId: user.uid,
+      points: currentPoints + earnedPoints,
+      quizScore: score,
+      timestamp: new Date()
+    }, { merge: true });
   };
   
   const handleSignOut = async () => {
@@ -198,7 +197,7 @@ export default function Home() {
           <Card>
             <CardHeader>
                 <CardTitle className="text-2xl font-bold font-headline">Course Module: {journeyState.journeyTitle}</CardTitle>
-                <p className="text-muted-foreground">Day {journeyState.day} of your learning journey.</p>
+                <CardDescription>Day {journeyState.day} of your learning journey.</CardDescription>
             </CardHeader>
           </Card>
 
