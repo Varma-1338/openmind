@@ -177,8 +177,8 @@ service cloud.firestore {
 
       // Allow any authenticated user to read/get for the leaderboard.
       allow get: if isSignedIn();
-      // Allow any authenticated user to list for the leaderboard, as it's public-facing data.
-      allow list: if isSignedIn();
+      // Allow any user to list for the leaderboard, as it's public-facing data.
+      allow list: if true;
 
       // Only the owner can create, update, or delete their points.
       allow create: if isSignedIn() && isOwner(pointId);
