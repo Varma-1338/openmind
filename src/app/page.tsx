@@ -24,6 +24,7 @@ import { signOut } from "firebase/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { doc } from "firebase/firestore";
+import { LoadingSpinner } from "@/components/common/loading-spinner";
 
 type JourneyState = {
   journeyTitle: string | null;
@@ -165,11 +166,7 @@ export default function Home() {
   };
 
   if (isUserLoading || (user && !userProfile)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!user) {
