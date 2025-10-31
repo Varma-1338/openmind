@@ -26,7 +26,6 @@ import { ArrowRight } from "lucide-react";
 import { collection, doc, Timestamp, query, orderBy, limit, getDocs, serverTimestamp, writeBatch } from "firebase/firestore";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { JourneyHistorySidebar } from "@/components/layout/journey-history-sidebar";
-import { Leaderboard } from "@/components/layout/leaderboard";
 
 type Journey = {
   id: string;
@@ -404,9 +403,6 @@ export default function Home() {
                 {renderJourneyContent()}
             </div>
             <aside className="space-y-8">
-                {user && journeyState?.journey && (
-                    <Leaderboard user={user} />
-                )}
                 {user && (
                     <JourneyHistorySidebar user={user} onSelectJourney={handleSelectJourney} />
                 )}
