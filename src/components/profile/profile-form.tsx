@@ -56,7 +56,7 @@ export function ProfileForm({ userProfile, onSubmit }: ProfileFormProps) {
             <FormItem>
               <FormLabel>Age</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="25" {...field} value={field.value ?? ''}/>
+                <Input type="number" placeholder="25" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} />
               </FormControl>
               <FormMessage />
             </FormItem>
