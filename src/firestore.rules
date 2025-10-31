@@ -95,7 +95,7 @@ service cloud.firestore {
               allow list: if isOwner(userId);
 
               allow create: if isSignedIn() && isOwner(userId);
-              update: if isSignedIn() && isOwner(userId) && resource != null;
+              allow update: if isSignedIn() && isOwner(userId) && resource != null;
               allow delete: if isSignedIn() && isOwner(userId) && resource != null;
 
                 /**
