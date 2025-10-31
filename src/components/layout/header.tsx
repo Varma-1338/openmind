@@ -1,6 +1,6 @@
 import { Logo } from "@/components/common/icons";
 import { Button } from "../ui/button";
-import { Flame, LogOut, Home, User, BookMarked, History, Sparkles } from "lucide-react";
+import { Flame, LogOut, Home, User, BookMarked, History, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -24,10 +24,12 @@ export function Header({ points, onSignOut, onHomeClick, onHistoryClick }: Heade
     <header className="sticky top-0 z-10 w-full bg-background/80 backdrop-blur-sm border-b">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
-          <Logo className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold font-headline text-primary hidden sm:block">
-            OpenMind
-          </h1>
+          <button onClick={onHomeClick} className="flex items-center gap-3">
+            <Logo className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold font-headline text-primary hidden sm:block">
+              OpenMind
+            </h1>
+          </button>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="icon" onClick={onHomeClick} aria-label="Home">
@@ -56,6 +58,12 @@ export function Header({ points, onSignOut, onHomeClick, onHistoryClick }: Heade
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Link href="/leaderboard" passHref>
+            <Button variant="ghost" size="icon" aria-label="Leaderboard">
+                <Trophy className="h-5 w-5" />
+            </Button>
+          </Link>
 
           <Link href="/profile" passHref>
             <Button variant="ghost" size="icon" aria-label="Profile">
