@@ -60,7 +60,7 @@ type JourneyState = {
 export default function Home() {
   const [interests, setInterests] = useState<string[]>([]);
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [showConfetti, setShowConfetti] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   
@@ -81,21 +81,23 @@ export default function Home() {
     if (isUserLoading || !user || !firestore) return;
 
     const loadJourney = async () => {
-      setIsLoading(true);
-
       // Priority 1: Check if a pre-generated journey needs to be started.
       const pregenInterestsJSON = localStorage.getItem('pregeneratedJourneyInterests');
       if (pregenInterestsJSON) {
         localStorage.removeItem('pregeneratedJourneyInterests');
         const pregenInterests = JSON.parse(pregenInterestsJSON);
         if (pregenInterests && pregenInterests.length > 0) {
-            await handleInterestsSubmit(pregenInterests, true);
-            // isLoading is handled inside handleInterestsSubmit for this case
+            // This is the key fix: set loading true *before* starting the async operation
+            // and clear out any old state to prevent flashing.
+            setIsLoading(true);
+            setJourneyState(null);
+            await handleInterestsSubmit(pregenInterests);
             return;
         }
       }
 
       // Priority 2: If not starting a new journey, load the most recent one.
+      setIsLoading(true); // Set loading before fetching existing journey
       const journeysRef = collection(firestore, "users", user.uid, "learning_journeys");
       const q = query(journeysRef, orderBy("startDate", "desc"), limit(1));
       const querySnapshot = await getDocs(q);
@@ -115,6 +117,9 @@ export default function Home() {
         } else {
             setJourneyState({ journey: journeyData, currentTopic: null });
         }
+      } else {
+        // No journeys exist at all, not even a new one was started
+        setJourneyState(null);
       }
       setIsLoading(false);
     };
@@ -125,17 +130,16 @@ export default function Home() {
   const startNewJourney = () => {
     setInterests([]);
     setJourneyState(null);
+    setIsLoading(false); // We are ready for the interest form
   };
   
-  const handleInterestsSubmit = async (submittedInterests: string[], fromPregen = false) => {
-    if (isLoading || !user || !firestore) return;
+  const handleInterestsSubmit = async (submittedInterests: string[]) => {
+    if (!user || !firestore) return;
     
-    // Manage loading state. If it's a pre-generated journey, it's already true.
-    if (!fromPregen) {
-        setIsLoading(true);
-    }
+    // Manage loading state
+    setIsLoading(true);
+    setJourneyState(null); // Clear previous journey state to prevent flash
     setInterests(submittedInterests);
-    setJourneyState(null); // Clear previous journey state
 
     try {
       const aiInput: GenerateDailyTopicInput = { interests: submittedInterests };
@@ -190,7 +194,6 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to generate learning journey:", error);
     } finally {
-      // Only set loading to false here, to ensure it covers the entire async operation.
       setIsLoading(false);
     }
   };
