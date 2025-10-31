@@ -1,0 +1,151 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Curiosity Engine platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "joinDate": {
+          "type": "string",
+          "description": "The date and time the user joined the platform.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "joinDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Uses path-based ownership for user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/learning_journeys/{journeyId}",
+        "definition": {
+          "entityName": "LearningJourney",
+          "schema": {
+            "$ref": "#/backend/entities/LearningJourney"
+          },
+          "description": "Stores learning journeys for each user. Uses path-based ownership for user-specific journeys.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "journeyId",
+              "description": "The unique identifier for the learning journey."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/learning_journeys/{journeyId}/topics/{topicId}",
+        "definition": {
+          "entityName": "Topic",
+          "schema": {
+            "$ref": "#/backend/entities/Topic"
+          },
+          "description": "Stores topics within a learning journey. Uses path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "journeyId",
+              "description": "The unique identifier for the learning journey."
+            },
+            {
+              "name": "topicId",
+              "description": "The unique identifier for the topic."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/learning_journeys/{journeyId}/topics/{topicId}/quizzes/{quizId}",
+        "definition": {
+          "entityName": "Quiz",
+          "schema": {
+            "$ref": "#/backend/entities/Quiz"
+          },
+          "description": "Stores quizzes for each topic. Uses path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "journeyId",
+              "description": "The unique identifier for the learning journey."
+            },
+            {
+              "name": "topicId",
+              "description": "The unique identifier for the topic."
+            },
+            {
+              "name": "quizId",
+              "description": "The unique identifier for the quiz."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/curiosity_points/{userId}",
+        "definition": {
+          "entityName": "CuriosityPoints",
+          "schema": {
+            "$ref": "#/backend/entities/CuriosityPoints"
+          },
+          "description": "Stores curiosity points for each user.  Participation denotes leaderboard inclusion.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the Curiosity Engine application, focusing on a secure, scalable, and debuggable data model that prioritizes authorization independence. User data is stored under `/users/{userId}`, ensuring path-based ownership for private data. Learning journeys, topics, and quizzes are nested under each user, maintaining a clear hierarchical structure. The `curiosity_points` collection implements a membership model for leaderboard participation. This design eliminates the need for `get()` calls in security rules, enabling atomic operations and easy debugging. Segregation ensures each collection has a homogeneous security posture, simplifying rule creation. The denormalized data provides authorization independence, allowing secure list operations, and ensures the integrity of the application's data. Explicit state modeling uses a single `status` field for learning journey states."
+  }
+}
