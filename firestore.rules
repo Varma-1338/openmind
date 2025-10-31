@@ -38,21 +38,6 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Protects against unauthorized access to the entire database.
-     * @path /databases/{database}/documents
-     * @allow (get, list) if false
-     * @deny (create, update, delete) if true
-     * @principle Prevents accidental open access at the root level.
-     */
-    match /{document=**} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
      * @description Manages user profile information. Only the authenticated user can read and write their own profile.
      * @path /users/{userId}
      * @allow (get) User 'user123' can get their own profile.
