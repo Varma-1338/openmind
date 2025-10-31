@@ -70,7 +70,7 @@ export function InterestForm({ onInterestsSubmit }: InterestFormProps) {
       )}
       <CardHeader className="text-center -mt-20 z-10 relative">
         <CardTitle className="text-4xl font-extrabold font-headline">
-          Welcome to the Curiosity Engine
+          Welcome to OpenMind
         </CardTitle>
         <CardDescription className="text-lg">
           Turn any interest into a personalized learning journey.

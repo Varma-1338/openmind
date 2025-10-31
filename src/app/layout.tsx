@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'Curiosity Engine',
-  description: 'AI Platform for Curiosity & Lifelong Learning',
+  title: 'OpenMind',
+  description: 'Your personal AI guide to explore and learn anything.',
 };
 
 export default function RootLayout({

@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user of the Curiosity Engine platform.",
+      "description": "Represents a user of the OpenMind platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -194,7 +194,7 @@
         }
       }
     ],
-    "reasoning": "This Firestore structure is designed to support the Curiosity Engine application, focusing on a secure, scalable, and debuggable data model that prioritizes authorization independence. User data is stored under `/users/{userId}`, ensuring path-based ownership for private data. Learning journeys, topics, and quizzes are nested under each user, maintaining a clear hierarchical structure. The `curiosity_points` collection implements a membership model for leaderboard participation. This design eliminates the need for `get()` calls in security rules, enabling atomic operations and easy debugging. Segregation ensures each collection has a homogeneous security posture, simplifying rule creation. The denormalized data provides authorization independence, allowing secure list operations, and ensures the integrity of the application's data. Explicit state modeling uses a single `status` field for learning journey states."
+    "reasoning": "This Firestore structure is designed to support the OpenMind application, focusing on a secure, scalable, and debuggable data model that prioritizes authorization independence. User data is stored under `/users/{userId}`, ensuring path-based ownership for private data. Learning journeys, topics, and quizzes are nested under each user, maintaining a clear hierarchical structure. The `curiosity_points` collection implements a membership model for leaderboard participation. This design eliminates the need for `get()` calls in security rules, enabling atomic operations and easy debugging. Segregation ensures each collection has a homogeneous security posture, simplifying rule creation. The denormalized data provides authorization independence, allowing secure list operations, and ensures the integrity of the application's data. Explicit state modeling uses a single `status` field for learning journey states."
   }
 }
 
