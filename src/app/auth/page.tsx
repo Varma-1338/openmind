@@ -27,7 +27,22 @@ export default function AuthPage() {
   const handleAuth = (data: AuthData) => {
     if (!auth || !firestore) return;
     if (isLogin) {
-      initiateEmailSignIn(auth, data.email, data.password);
+      initiateEmailSignIn(auth, data.email, data.password)
+        .catch(error => {
+            let title = 'Sign-in Failed';
+            let description = 'An unexpected error occurred.';
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                title = 'Invalid Credentials';
+                description = 'The email or password you entered is incorrect. Please try again.';
+            } else {
+                description = error.message;
+            }
+            toast({
+                variant: 'destructive',
+                title: title,
+                description: description,
+            });
+      });
     } else {
       initiateEmailSignUp(auth, data.email, data.password).then((userCredential) => {
           if (userCredential && userCredential.user) {
