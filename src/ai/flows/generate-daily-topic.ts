@@ -48,7 +48,9 @@ const prompt = ai.definePrompt({
   The user is continuing their learning journey on "{{journeyTitle}}". Generate the next logical topic in this journey.
   The topic should build on previous knowledge but be digestible in a single day.
   Mark "isFirstDay" as false. If you feel this is the final topic to conclude the journey, mark "isLastDay" as true.
+  {{#if totalDays}}
   The "totalDays" MUST be {{{totalDays}}}.
+  {{/if}}
   {{else}}
   This is the start of a new journey. First, you MUST determine a realistic and appropriate length for a learning journey based on the user's interests. A simple topic might be 7-10 days, while a complex one like "Data Structures" could be 30, 45, or more days. For pre-generated university subjects like "Data Structures & Algorithms" or "Operating Systems", you MUST use a longer, more realistic timeline (e.g., 30-45 days).
   
