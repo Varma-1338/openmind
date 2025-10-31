@@ -178,7 +178,7 @@ service cloud.firestore {
       // Allow any authenticated user to read/get for the leaderboard.
       allow get: if isSignedIn();
       // Allow list only if querying by journeyTitle for the leaderboard.
-      allow list: if isSignedIn() && request.query.keys().hasAll(['where', 'orderBy']);
+      allow list: if isSignedIn() && request.query.keys().hasAll(['where', 'orderBy', 'limit']);
 
       // Only the owner can create, update, or delete their points.
       allow create: if isSignedIn() && isOwner(userId);
