@@ -390,17 +390,10 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header streak={streak} onSignOut={handleSignOut} onHomeClick={startNewJourney} />
       <main className="flex-1 p-4 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
-            <div className="lg:col-span-1 space-y-8 mt-8 lg:mt-0 order-2 lg:order-1">
-                {user && <JourneyHistorySidebar user={user} onSelectJourney={handleSelectJourney} />}
-            </div>
-          <div className="lg:col-span-2 space-y-8 order-1 lg:order-2">
-            {renderJourneyContent()}
-          </div>
+        <div className="mx-auto max-w-4xl space-y-8">
+          {renderJourneyContent()}
         </div>
       </main>
     </div>
   );
 }
-
-    
