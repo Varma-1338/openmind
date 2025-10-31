@@ -19,12 +19,12 @@ import {
   buildMicroQuiz,
   type BuildMicroQuizOutput,
 } from "@/ai/flows/build-micro-quiz";
-import { useUser, useAuth, setDocumentNonBlocking, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import AuthPage from "@/app/auth/page";
 import { signOut } from "firebase/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import { collection, doc, Timestamp, query, orderBy, limit, getDocs, serverTimestamp, writeBatch, increment } from "firebase/firestore";
+import { collection, doc, Timestamp, query, orderBy, limit, getDocs, writeBatch, increment } from "firebase/firestore";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { JourneyHistorySidebar } from "@/components/layout/journey-history-sidebar";
 import { useToast } from "@/hooks/use-toast";
@@ -83,26 +83,27 @@ export default function Home() {
   const curiosityPoints = userProfile?.curiosityPoints ?? 0;
 
   useEffect(() => {
-    if (isUserLoading || !user || !firestore) return;
+    if (isUserLoading || !user || !firestore) {
+      if (!isUserLoading) {
+        setIsLoading(false);
+      }
+      return;
+    };
   
     const loadJourney = async () => {
-      // Check for a pre-generated journey first.
+      setIsLoading(true);
       const pregenInterestsJSON = localStorage.getItem('pregeneratedJourneyInterests');
+      
       if (pregenInterestsJSON) {
         localStorage.removeItem('pregeneratedJourneyInterests');
         const pregenInterests = JSON.parse(pregenInterestsJSON);
-        
         if (pregenInterests && pregenInterests.length > 0) {
-          // Immediately set loading state and clear old state before starting the new journey
-          setIsLoading(true);
-          setJourneyState(null);
           await handleInterestsSubmit(pregenInterests);
           return; // Exit after starting the new journey
         }
       }
   
       // If no new journey, load the most recent one.
-      setIsLoading(true);
       const journeysRef = collection(firestore, "users", user.uid, "learning_journeys");
       const q = query(journeysRef, orderBy("startDate", "desc"), limit(1));
       const querySnapshot = await getDocs(q);
@@ -130,7 +131,7 @@ export default function Home() {
   
     loadJourney();
   
-  }, [isUserLoading, user, firestore]); // Dependency on firestore is correct here
+  }, [isUserLoading, user, firestore]);
 
   const startNewJourney = () => {
     setInterests([]);
@@ -298,7 +299,14 @@ export default function Home() {
     const pointsToAdd = correctAnswers * 10;
     batch.update(userProfileRef, { curiosityPoints: increment(pointsToAdd) });
 
-    batch.commit();
+    batch.commit().catch(err => {
+        console.error("Error updating score and points", err);
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "Could not save your quiz score and points."
+        })
+    });
 
     setJourneyState(prev => {
       if (!prev || !prev.currentTopic) return prev;
