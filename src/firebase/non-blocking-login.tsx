@@ -4,26 +4,38 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
 
-/** Initiate anonymous sign-in (non-blocking). */
-export function initiateAnonymousSignIn(authInstance: Auth): void {
-  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
+/**
+ * Initiates an anonymous sign-in. This is a non-blocking call.
+ * Auth state changes are handled by the global onAuthStateChanged listener.
+ */
+function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string) {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
+/**
+ * Initiates an email/password sign-up. Returns a promise to handle success or failure.
+ * Auth state changes are also handled by the global onAuthStateChanged listener.
+ */
+function initiateEmailSignUp(authInstance: Auth, email: string, password: string) {
   return createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string) {
-  // CRITICAL: Call signInWithEmailAndPassword directly, but return the promise for error handling.
+/**
+ * Initiates an email/password sign-in. Returns a promise to handle success or failure.
+ * Auth state changes are also handled by the global onAuthStateChanged listener.
+ */
+function initiateEmailSignIn(authInstance: Auth, email: string, password: string) {
   return signInWithEmailAndPassword(authInstance, email, password);
-  // The caller can now handle success/failure. Auth state change is still handled by onAuthStateChanged listener.
 }
+
+/**
+ * A stable API object for authentication methods.
+ * Exporting a single object like this is more friendly to Next.js Fast Refresh.
+ */
+export const authApi = {
+    anonymousSignIn: initiateAnonymousSignIn,
+    emailSignUp: initiateEmailSignUp,
+    emailSignIn: initiateEmailSignIn,
+};

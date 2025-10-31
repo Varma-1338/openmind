@@ -2,10 +2,7 @@
 import { useState } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { useAuth, setDocumentNonBlocking, useFirestore } from "@/firebase";
-import {
-  initiateEmailSignUp,
-  initiateEmailSignIn,
-} from "@/firebase/non-blocking-login";
+import { authApi } from "@/firebase/non-blocking-login";
 import { Logo } from "@/components/common/icons";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +26,7 @@ export default function AuthPage() {
   const handleAuth = (data: AuthData) => {
     if (!auth || !firestore) return;
     if (isLogin) {
-      initiateEmailSignIn(auth, data.email, data.password)
+      authApi.emailSignIn(auth, data.email, data.password)
         .then(() => {
             router.push('/');
         })
@@ -49,7 +46,7 @@ export default function AuthPage() {
             });
       });
     } else {
-      initiateEmailSignUp(auth, data.email, data.password).then((userCredential) => {
+      authApi.emailSignUp(auth, data.email, data.password).then((userCredential) => {
           if (userCredential && userCredential.user) {
               const user = userCredential.user;
               const userProfile = {
