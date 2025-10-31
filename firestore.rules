@@ -132,7 +132,14 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for the `curiosity_points` collection.
+     * @description Allows any authenticated user to list the entire `curiosity_points` collection for the leaderboard.
+     */
+    match /curiosity_points {
+        allow list: if isSignedIn();
+    }
+
+    /**
+     * @description Rules for individual documents in the `curiosity_points` collection.
      */
     match /curiosity_points/{pointId} {
         function isOwner() {
@@ -146,14 +153,6 @@ service cloud.firestore {
         allow create: if isSignedIn() && isOwner();
         allow update: if isSignedIn() && isOwner() && resource != null;
         allow delete: if isSignedIn() && isOwner() && resource != null;
-    }
-
-    /**
-     * @description Separate rule to allow listing the entire `curiosity_points` collection for leaderboards.
-     */
-    match /curiosity_points {
-        // Allow list if the query is ordered by streak, which is required for the leaderboard.
-        allow list: if isSignedIn() && request.query.orderBy.streak == 'desc';
     }
   }
 }
